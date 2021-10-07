@@ -1,0 +1,136 @@
+---
+title: "Model Selection"
+author: "Jocelyn Stalker"
+date: "10/5/2021"
+output: html_document
+highlight: espresso
+---
+<body style="background-color:black;">
+
+<style>
+div.halloween pre { background-color:#6f4f8c; }
+div.halloween pre.r { background-color:#D35400; }
+</style>
+
+<div class = "halloween">
+
+# Reptile Diversity in Agricultural Landscapes
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load packages, import data, include= FALSE}
+library(ggplot2)
+library(janitor)
+library(patchwork)
+library(MuMIn)
+div.data <- read.csv("~/Documents/ADA_ModelSelection/data.div.csv") %>% clean_names()
+```
+
+```{r}
+pairs(div.data[,c(3,5:11)], lower.panel = NULL)
+```
+
+```{r}
+mod1 <- lm(diversity_index ~ ai + human_settlement, data= div.data)
+mod2 <- lm(diversity_index ~ agriculture + ai, data= div.data)
+mod3 <- lm(diversity_index ~ ai + natural_vegetation, data= div.data)
+mod4 <- lm(diversity_index ~ natural_vegetation + seminatural_vegetation, data= div.data)
+mod5 <- lm(diversity_index ~ agriculture + human_settlement, data= div.data)
+```
+
+```{r model selection}
+mod.sel <- model.sel(mod1,mod2,mod3,mod4,mod5)
+mod.sel
+```
+
+```{r}
+subset(mod.sel, cumsum(mod.sel$weight) <= .95)
+```
+
+```{r}
+#consistent AIC with Fishers information matrix
+model.sel(mod1,mod2,mod3,mod4,mod5, rank = CAICF) 
+```
+
+```{r importance}
+importance(mod.sel)
+```
+
+```{r Model Averaging}
+# Model average using all candidate models, always use revised.var = TRUE
+mod.avg.ests <- model.avg(mod.sel, revised.var = TRUE)
+mod.avg.ests
+```
+
+```{r model 1}
+anova(mod1)
+```
+
+```{r make a figure for funsies}
+f1 <- ggplot(div.data, aes(ai, diversity_index)) + 
+  geom_point() +
+  geom_smooth(method="lm") + labs(title= "Reptile Diversity as a Function of \n Agricultural Intensity", x= "Agricultural Intensity", y= "Reptile Diversity Index")
+
+f2 <- ggplot(div.data, aes(human_settlement, diversity_index)) + 
+  geom_point() +
+  geom_smooth(method="lm") + labs(title= "Reptile Diversity as a Function of \n Nearby Human Settlements", x= "Human Settlements", y= "Reptile Diversity Index")
+
+f1+f2
+```
+
+# Drivers of Density of an Urban Lizard
+
+![*Tropidurus hispidus*](https://www.researchgate.net/profile/Gentil-Filho/publication/230587983/figure/fig11/AS:202919895932956@1425391281689/Tropidurus-hispidusSpix-1825Photo-Washington-Vieira.png)
+
+```{r import data, include= FALSE}
+lagartixas <- read.csv("~/Documents/ADA_ModelSelection/lagartixas.csv") %>% clean_names()
+```
+
+```{r check for colinearity}
+pairs(lagartixas[,9:13], lower.panel = NULL)
+# arthropods and herb cover look suspicious, so let's not include them in the same model
+```
+
+```{r build models}
+m1 <- lm(encounter_rate_lagartixas_ind_m ~ trees_m + mean_herbcover, data= lagartixas)
+m2 <- lm(encounter_rate_lagartixas_ind_m ~ mean_impervious + mean_shelters, data= lagartixas)
+m3 <- lm(encounter_rate_lagartixas_ind_m ~ mean_arthropods + mean_shelters, data= lagartixas)
+m4 <- lm(encounter_rate_lagartixas_ind_m ~ trees_m + mean_arthropods, data= lagartixas)
+m5 <- lm(encounter_rate_lagartixas_ind_m ~ mean_impervious + mean_herbcover, data= lagartixas)
+```
+
+```{r model selection 2}
+mod.sel2 <- model.sel(m1,m2,m3,m4,m5)
+mod.sel2
+```
+
+```{r build another model, run model selection}
+m6 <- lm(encounter_rate_lagartixas_ind_m ~ mean_shelters + mean_impervious + mean_arthropods, data= lagartixas)
+m7 <- lm(encounter_rate_lagartixas_ind_m ~ mean_shelters + mean_impervious + mean_arthropods + trees_m, data= lagartixas)
+mod.sel3 <- model.sel(m1,m2,m3,m4,m5,m6,m7)
+mod.sel3
+```
+
+```{r subsetting models}
+subset(mod.sel3, delta <2)
+```
+
+```{r analyze}
+anova(m3)
+anova(m2)
+anova(m7)
+```
+
+```{r}
+f3 <- ggplot(lagartixas, aes(mean_shelters, encounter_rate_lagartixas_ind_m)) + 
+  geom_point() +
+  geom_smooth(method="lm") + labs(title= "The Effect of Shelters on \nLagartixa Encounter Rate", x= "Mean # of Shelters", y= "Lagartixa Encounter Rate (individuals/meter)")
+
+f4 <- ggplot(lagartixas, aes(trees_m, encounter_rate_lagartixas_ind_m)) + 
+  geom_point() +
+  geom_smooth(method="lm") + labs(title= "The Effect of Trees on \nLagartixa Encounter Rate", x= "Trees per Meter", y= "Lagartixa Encounter Rate (individuals/meter)")
+
+f3+f4
+```
