@@ -13,7 +13,6 @@ div.halloween pre.r { background-color:#D35400; }
 </style>
 
 <div class = "halloween">
-
 # Reptile Diversity in Agricultural Landscapes
 
 ```{r setup, include=FALSE}
