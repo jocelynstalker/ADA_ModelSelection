@@ -8,7 +8,7 @@ highlight: espresso
 <body style="background-color:black;">
 
 <style>
-div.halloween pre { background-color:#6f4f8c; }
+div.halloween pre { background-color:#5c1b82; color:#ffffff; }
 div.halloween pre.r { background-color:#D35400; }
 </style>
 
@@ -49,7 +49,7 @@ subset(mod.sel, cumsum(mod.sel$weight) <= .95)
 ```
 
 ```{r}
-#consistent AIC with Fishers information matrix
+# Consistent AIC with Fishers information matrix
 model.sel(mod1,mod2,mod3,mod4,mod5, rank = CAICF) 
 ```
 
@@ -81,7 +81,7 @@ f1+f2
 
 # Drivers of Density of an Urban Lizard
 
-![*Tropidurus hispidus*](https://www.researchgate.net/profile/Gentil-Filho/publication/230587983/figure/fig11/AS:202919895932956@1425391281689/Tropidurus-hispidusSpix-1825Photo-Washington-Vieira.png)
+![<font size="12"> *Tropidurus hispidus* </font>](https://www.researchgate.net/profile/Gentil-Filho/publication/230587983/figure/fig11/AS:202919895932956@1425391281689/Tropidurus-hispidusSpix-1825Photo-Washington-Vieira.png)
 
 ```{r import data, include= FALSE}
 lagartixas <- read.csv("~/Documents/ADA_ModelSelection/lagartixas.csv") %>% clean_names()
